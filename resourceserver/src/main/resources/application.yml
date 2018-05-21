@@ -1,0 +1,23 @@
+debug: true
+
+server:
+    port: 8083
+    contextPath: /res
+
+security:
+  ignored: /webjars/**
+  oauth2:
+    sso:
+      login-path: /login
+    client:
+      client-id: test-res-client
+      client-secret: test-res-client-secret-123
+      access-token-uri: http://localhost:8082/security/oauth/token
+      user-authorization-uri: http://localhost:8082/security/oauth/authorize
+#      clientAuthenticationScheme: form
+    resource:
+#      userInfoUri: http://localhost:8082/me
+      token-info-uri: http://localhost:8082/security/oauth/check_token
+      prefer-token-info: true
+      jwt:
+        key-value: sss
