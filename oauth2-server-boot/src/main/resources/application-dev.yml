@@ -28,6 +28,9 @@ spring:
         show-sql: true
     thymeleaf:
         cache: false
+    redis:
+      host: rdserver
+      port: 6379
 
 
 logging:

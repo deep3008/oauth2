@@ -1,12 +1,12 @@
 package com.newnil.cas.oauth2.provider.config;
 
-import com.newnil.cas.oauth2.provider.service.DatabaseTokenStoreService;
 import com.newnil.cas.oauth2.provider.service.OAuth2DatabaseClientDetailsService;
 import lombok.extern.slf4j.Slf4j;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.oauth2.common.DefaultOAuth2AccessToken;
@@ -20,6 +20,7 @@ import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.approval.ApprovalStore;
 import org.springframework.security.oauth2.provider.approval.TokenApprovalStore;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
+import org.springframework.security.oauth2.provider.token.store.redis.RedisTokenStore;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -38,8 +39,8 @@ import java.util.Map;
 @EnableAuthorizationServer
 public class OAuth2ServerConfig extends AuthorizationServerConfigurerAdapter {
 
-    @Autowired
-    private DatabaseTokenStoreService tokenStoreService;
+//    @Autowired
+//    private DatabaseTokenStoreService tokenStoreService;
 
     @Autowired
     private OAuth2DatabaseClientDetailsService oAuth2DatabaseClientDetailsService;
@@ -47,10 +48,18 @@ public class OAuth2ServerConfig extends AuthorizationServerConfigurerAdapter {
     @Autowired
     private AuthenticationManager authenticationManager;
 
+    @Autowired
+    private RedisConnectionFactory redisConnectionFactory;
+
+    @Bean
+    public RedisTokenStore redisTokenStore() {
+        return new RedisTokenStore(redisConnectionFactory);
+    }
+
     @Bean
     public ApprovalStore approvalStore() {
         TokenApprovalStore tokenStore = new TokenApprovalStore();
-        tokenStore.setTokenStore(tokenStoreService);
+        tokenStore.setTokenStore(redisTokenStore());
         return tokenStore;
     }
 
@@ -58,7 +67,10 @@ public class OAuth2ServerConfig extends AuthorizationServerConfigurerAdapter {
     public void configure(AuthorizationServerEndpointsConfigurer endpoints)
             throws Exception {
         // 配置授权endpoint
-        endpoints.tokenStore(tokenStoreService).approvalStore(approvalStore())
+//        tokenStoreService.setRedisTokenStore(new RedisTokenStore(redisConnectionFactory));
+
+        // tokenStore改由redis保存
+        endpoints.tokenStore(redisTokenStore()).approvalStore(approvalStore())
         .authenticationManager(authenticationManager);
 
         // add by Deep
